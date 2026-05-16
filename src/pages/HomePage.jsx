@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react'
-import { ArrowRight, Calendar, MapPin, Search, Users } from 'lucide-react'
+import { ArrowRight, MapPin, Search, Users } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import Button from '../components/ui/Button'
 import Card from '../components/ui/Card'
@@ -8,10 +8,10 @@ import { travelService } from '../services/TravelsService'
 import { PUBLIC_PATHS } from '../constants/paths'
 
 const HomePage = () => {
-  const [travels, setTravels]   = useState([])
-  const [loading, setLoading]   = useState(true)
-  const [search, setSearch]     = useState({ destiny: '', startDate: '', passengers: '' })
-  const navigate                = useNavigate()
+  const [travels, setTravels] = useState([])
+  const [loading, setLoading] = useState(true)
+  const [search, setSearch] = useState({ destiny: '', startDate: '', endDate: '', passengers: 2 })
+  const navigate = useNavigate()
 
   useEffect(() => {
     travelService.getAvailable()
@@ -23,21 +23,21 @@ const HomePage = () => {
   const handleSearch = (e) => {
     e.preventDefault()
     const params = new URLSearchParams()
-    if (search.destiny)    params.set('destiny', search.destiny)
-    if (search.startDate)  params.set('startDate', search.startDate)
+    if (search.destiny) params.set('destiny', search.destiny)
+    if (search.startDate) params.set('startDate', search.startDate)
+    if (search.endDate) params.set('endDate', search.endDate)
     if (search.passengers) params.set('passengers', search.passengers)
     navigate(`${PUBLIC_PATHS.SEARCH}?${params.toString()}`)
   }
 
   return (
     <>
-      {/* Hero */}
       <section className="relative overflow-hidden">
         <div
           aria-hidden="true"
           className="absolute inset-0 bg-[radial-gradient(circle_at_top,_rgba(0,31,63,0.4),_transparent_65%)]"
         />
-        <div className="container-page relative grid gap-12 py-20 lg:grid-cols-[1.1fr_0.9fr] lg:py-28">
+        <div className="container-page relative grid gap-12 py-20 lg:grid-cols-[1.3fr_0.7fr] lg:py-28">
           <div className="flex flex-col justify-center gap-6">
             <span className="inline-flex w-fit items-center gap-2 rounded-full border border-brand-500/30 bg-brand-500/10 px-4 py-1.5 text-xs font-medium uppercase tracking-[0.2em] text-brand-300">
               Viajes seleccionados · 2026
@@ -56,52 +56,67 @@ const HomePage = () => {
             </div>
           </div>
 
-          {/* Formulario de búsqueda */}
-          <Card className="p-6 md:p-8">
-            <h2 className="text-lg font-semibold text-white">Buscar nuevo viaje</h2>
-            <form onSubmit={handleSearch} className="mt-6 grid gap-4">
-              <label className="flex flex-col gap-2 text-sm">
-                <span className="font-medium text-ink-soft">Destino</span>
-                <span className="flex items-center gap-2 rounded-xl border border-surface-600 bg-surface-900 px-4">
-                  <MapPin className="h-4 w-4 text-brand-400" aria-hidden="true" />
+          <Card className="p-7 ml-auto w-full max-w-[360px]">
+            <h2 className="text-lg font-semibold text-white mb-6">¿A dónde vas?</h2>
+            <form onSubmit={handleSearch} className="grid gap-5">
+              <label className="flex flex-col gap-2">
+                <span className="text-xs font-medium uppercase tracking-widest text-brand-400">Destino</span>
+                <span className="flex items-center gap-2 rounded-xl border border-surface-600 bg-surface-900 px-4 h-11">
+                  <MapPin className="h-4 w-4 text-brand-400 shrink-0" aria-hidden="true" />
                   <input
                     type="text"
                     placeholder="¿A dónde?"
                     value={search.destiny}
                     onChange={e => setSearch(s => ({ ...s, destiny: e.target.value }))}
-                    className="h-11 w-full bg-transparent text-ink placeholder:text-ink-muted focus:outline-none"
+                    className="w-full bg-transparent text-sm text-ink placeholder:text-ink-muted focus:outline-none"
                   />
                 </span>
               </label>
-              <div className="grid gap-4 sm:grid-cols-2">
-                <label className="flex flex-col gap-2 text-sm">
-                  <span className="font-medium text-ink-soft">Fecha salida</span>
-                  <span className="flex items-center gap-2 rounded-xl border border-surface-600 bg-surface-900 px-4">
-                    <Calendar className="h-4 w-4 text-brand-400" aria-hidden="true" />
+
+              <div className="grid gap-3 grid-cols-2">
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-medium uppercase tracking-widest text-brand-400">Salida</span>
+                  <span className="flex items-center rounded-xl border border-surface-600 bg-surface-900 px-3 h-11">
                     <input
                       type="date"
                       value={search.startDate}
                       onChange={e => setSearch(s => ({ ...s, startDate: e.target.value }))}
-                      className="h-11 w-full bg-transparent text-ink placeholder:text-ink-muted focus:outline-none"
+                      style={{ colorScheme: 'dark', border: 'none', outline: 'none', background: 'transparent', color: 'inherit', width: '100%', fontSize: '12px' }}
                     />
                   </span>
                 </label>
-                <label className="flex flex-col gap-2 text-sm">
-                  <span className="font-medium text-ink-soft">Viajeros</span>
-                  <span className="flex items-center gap-2 rounded-xl border border-surface-600 bg-surface-900 px-4">
-                    <Users className="h-4 w-4 text-brand-400" aria-hidden="true" />
+                <label className="flex flex-col gap-2">
+                  <span className="text-xs font-medium uppercase tracking-widest text-brand-400">Vuelta</span>
+                  <span className="flex items-center rounded-xl border border-surface-600 bg-surface-900 px-3 h-11">
                     <input
-                      type="number"
-                      min="1"
-                      placeholder="2"
-                      value={search.passengers}
-                      onChange={e => setSearch(s => ({ ...s, passengers: e.target.value }))}
-                      className="h-11 w-full bg-transparent text-ink placeholder:text-ink-muted focus:outline-none"
+                      type="date"
+                      value={search.endDate}
+                      onChange={e => setSearch(s => ({ ...s, endDate: e.target.value }))}
+                      style={{ colorScheme: 'dark', border: 'none', outline: 'none', background: 'transparent', color: 'inherit', width: '100%', fontSize: '12px' }}
                     />
                   </span>
                 </label>
               </div>
-              <Button size="lg" fullWidth>
+
+              <label className="flex flex-col gap-2">
+                <span className="text-xs font-medium uppercase tracking-widest text-brand-400">Viajeros</span>
+                <span className="flex items-center justify-between rounded-xl border border-surface-600 bg-surface-900 px-3 h-11">
+                  <Users className="h-4 w-4 text-brand-400" aria-hidden="true" />
+                  <button
+                    type="button"
+                    onClick={() => setSearch(s => ({ ...s, passengers: Math.max(1, s.passengers - 1) }))}
+                    className="text-[#4A8FA8] font-bold text-xl px-2"
+                  >−</button>
+                  <span className="text-center text-ink text-sm flex-1">{search.passengers}</span>
+                  <button
+                    type="button"
+                    onClick={() => setSearch(s => ({ ...s, passengers: Math.min(20, s.passengers + 1) }))}
+                    className="text-[#4A8FA8] font-bold text-xl px-2"
+                  >+</button>
+                </span>
+              </label>
+
+              <Button type="submit" size="md" fullWidth>
                 <Search className="h-4 w-4" aria-hidden="true" />
                 Buscar
               </Button>
@@ -110,7 +125,6 @@ const HomePage = () => {
         </div>
       </section>
 
-      {/* Viajes disponibles */}
       <section className="container-page py-16">
         <div className="mb-10 flex flex-wrap items-end justify-between gap-4">
           <div>
@@ -129,8 +143,6 @@ const HomePage = () => {
               <div key={i} className="h-64 animate-pulse rounded-2xl bg-surface-800" />
             ))}
           </div>
-        ) : travels.length === 0 ? (
-          <p className="text-center text-ink-muted py-12">No hay viajes disponibles en este momento</p>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {travels.slice(0, 6).map(travel => (

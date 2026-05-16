@@ -12,9 +12,11 @@ const SearchResultsPage = () => {
   const [travels, setTravels]   = useState([])
   const [loading, setLoading]   = useState(true)
   const [error, setError]       = useState(null)
-  const [maxPrice, setMaxPrice] = useState(5000)
   const [onlyOffers, setOnlyOffers] = useState(false)
   const [search, setSearch]     = useState(searchParams.get('destiny') ?? '')
+
+  const startDateParam = searchParams.get('startDate') ?? ''
+  const endDateParam   = searchParams.get('endDate') ?? ''
 
   useEffect(() => {
     travelService.getAvailable()
@@ -23,11 +25,20 @@ const SearchResultsPage = () => {
       .finally(() => setLoading(false))
   }, [])
 
-  // Filtros en el frontend
   const filtered = travels.filter(t => {
-    const matchDestiny = t.destiny?.toLowerCase().includes(search.toLowerCase())
-    const matchOffer   = onlyOffers ? t.sale === true : true
-    return matchDestiny && matchOffer
+    const matchDestiny = !search ||
+      t.destiny?.toLowerCase().includes(search.toLowerCase()) ||
+      t.hotelCity?.toLowerCase().includes(search.toLowerCase())
+
+    const matchOffer = onlyOffers ? t.sale === true : true
+
+    const matchStartDate = !startDateParam ||
+      new Date(t.startDate) >= new Date(startDateParam)
+
+    const matchEndDate = !endDateParam ||
+      new Date(t.endDate) <= new Date(endDateParam)
+
+    return matchDestiny && matchOffer && matchStartDate && matchEndDate
   })
 
   return (
@@ -50,17 +61,13 @@ const SearchResultsPage = () => {
 
       <div className="mt-8 grid gap-8 lg:grid-cols-[280px_1fr]">
 
-        {/* Filtros */}
         <Card as="aside" aria-label="Filtros" className="h-fit p-6">
           <h2 className="text-sm font-semibold uppercase tracking-wide text-ink-muted">
             Filtros
           </h2>
 
-          {/* Buscador */}
           <div className="mt-4">
-            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
-              Destino
-            </p>
+            <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">Destino</p>
             <div className="flex items-center gap-2 rounded-xl border border-surface-600 bg-surface-900 px-3">
               <MapPin className="h-4 w-4 text-brand-400" aria-hidden="true" />
               <input
@@ -73,7 +80,13 @@ const SearchResultsPage = () => {
             </div>
           </div>
 
-          {/* Solo ofertas */}
+          {startDateParam && (
+            <div className="mt-4 rounded-lg bg-surface-800 p-3 text-xs text-ink-muted">
+              📅 Salida desde: <span className="text-white">{startDateParam}</span>
+              {endDateParam && <> · Vuelta hasta: <span className="text-white">{endDateParam}</span></>}
+            </div>
+          )}
+
           <div className="mt-6 border-t border-surface-700 pt-6">
             <label className="flex items-center gap-3 cursor-pointer">
               <input
@@ -86,19 +99,17 @@ const SearchResultsPage = () => {
             </label>
           </div>
 
-          {/* Limpiar filtros */}
           <Button
             variant="ghost"
             size="sm"
             fullWidth
             className="mt-6"
-            onClick={() => { setSearch(''); setOnlyOffers(false); setMaxPrice(5000) }}
+            onClick={() => { setSearch(''); setOnlyOffers(false) }}
           >
             Limpiar filtros
           </Button>
         </Card>
 
-        {/* Resultados */}
         {loading ? (
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
             {[...Array(6)].map((_, i) => (
@@ -109,9 +120,7 @@ const SearchResultsPage = () => {
           <div className="flex flex-col items-center justify-center gap-3 py-20 text-center">
             <MapPin className="h-10 w-10 text-brand-400" />
             <p className="text-lg font-semibold text-white">Sin resultados</p>
-            <p className="text-sm text-ink-muted">
-              Prueba con otro destino o quita los filtros
-            </p>
+            <p className="text-sm text-ink-muted">Prueba con otro destino o quita los filtros</p>
           </div>
         ) : (
           <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-3">
